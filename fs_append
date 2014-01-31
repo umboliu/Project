@@ -1,0 +1,45 @@
+         else if (!strcmp(func_name,"FS_APPEND")){
+                        /*Extract information*/
+                        if( ret_num ==2 ){
+                                if( validity_check(username,ses_num,seq_num) != -1){
+                                        int retVal = sscanf(buf, "%*s %*u %*u %11s %d", filename_buf, &append_size);
+                                        unsigned int data_size_in_message = size_cleartext-strlen(buf)-1;
+                                        length = strlen(func_name) + to_string(ses_num).length() + to_string(seq_num).length()+
+                                                 strlen(filename_buf) + to_string(append_size).length() + 4;
+                                        if( 0<append_size && append_size<=FS_MAXFILEBLOCKS*FS_BLOCKSIZE && data_size_in_message == append_size &&
+                                            retVal==2 && length==strlen(buf)){
+                                                filename = filename_buf;
+                                                temp_buf = fs_append (filename,username,append_size, buf+strlen(buf)+1,(unsigned int)ses_num,(unsigned int)seq_num);
+                                        }else{
+                                                throw Error ("FS_APPEND: invalid field values/corrupted buffer.");
+                                        }
+                                }else{
+                                        throw Error ("FS_APPEND: invalid ses/seq pair.");
+                                }
+                        } else{
+                                throw Error ("FS_APPEND: error paring the field/corrupted buffer.");
+                        }
+
+                }
+
+ else if (!strcmp(func_name,"FS_APPEND")){
+                /*Extract information*/
+                sscanf(thread_buf+strlen(func_name)+1,"%u%lld%s%u",&ses_num,&seq_num,filename_buf,&append_size);
+                filename = filename_buf;
+                char data[append_size];
+                if (append_size > 0 ){
+                        memcpy(data,thread_buf+strlen(thread_buf)+1,append_size);
+                }
+                else{
+                        end_connection(msgsock,(void*)arg);
+                        return 0;
+                }
+                /*Check validity*/
+                if (validity_check(username,ses_num,seq_num)!= -1){
+                        temp_buf = fs_append (filename,username,append_size,data,ses_num,(unsigned int)seq_num);
+                }
+                else{
+                        end_connection(msgsock,(void*)arg);
+                        return 0;
+                }
+        }
